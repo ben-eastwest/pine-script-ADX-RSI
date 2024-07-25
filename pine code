@@ -1,0 +1,30 @@
+//This strategy is taken dirctly from Peak Trading Research and has been created to more easily examine testing results
+//The author of this script makes no guarantees about accuracy or validity of backtest results
+//This script and strategy are for demonstration purposes only
+
+//@version=5
+strategy("ADX-RSI", overlay=true)
+
+ma_len = input(300,title='MA Length')
+rsi_len = input(2,title='RSI Length')
+adx_len = input(14,title='ADX Length')
+
+ma = ta.sma(close,ma_len)
+rsi = ta.rsi(close,rsi_len)
+[diplus, diMinus, adx] = ta.dmi(adx_len,20)
+
+longentry = adx > 20 and close > ma and rsi < 20 and strategy.position_size == 0 
+longexit = strategy.position_size > 0 and rsi > 75
+shortentry = adx > 20 and close < ma and rsi > 85 and strategy.position_size == 0 
+shortexit = strategy.position_size < 0 and rsi < 25
+
+if (longentry)
+    strategy.entry('long', strategy.long)
+if (longexit)
+    strategy.close('long','long exit')
+if (shortentry)
+    strategy.entry('short',strategy.short)
+if (shortexit)
+    strategy.close('short','short exit')
+
+plot(ma, color=color.white)
