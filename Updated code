@@ -1,0 +1,55 @@
+///This strategy is taken dirctly from Peak Trading Research and has been created to more easily examine testing results
+// Exerts of this script are also taken from the ADX DMI script written by BeikabuOyaji 
+//The author of this script makes no guarantees about accuracy or validity of backtest results
+//This script and strategy are for demonstration purposes only
+
+//@version=5
+strategy("ADX-RSI", overlay=true)
+
+ma_len = input(300,title='MA Length')
+rsi_len = input(2,title='RSI Length')
+adx_len = input(14,title='ADX Length')
+
+ma = ta.sma(close,ma_len)
+rsi = ta.rsi(close,rsi_len)
+
+// ************************************************************************************************************************************************
+// ADX code taken directly from code provided by BeikabuOyaji and converted to V5 
+// © BeikabuOyaji
+len = input(14)
+th = input(20)
+
+TrueRange = math.max(math.max(high - low, math.abs(high - nz(close[1]))), math.abs(low - nz(close[1])))
+DirectionalMovementPlus = high - nz(high[1]) > nz(low[1]) - low ? math.max(high - nz(high[1]), 0) : 0
+DirectionalMovementMinus = nz(low[1]) - low > high - nz(high[1]) ? math.max(nz(low[1]) - low, 0) : 0
+
+SmoothedTrueRange = 0.0
+SmoothedTrueRange := nz(SmoothedTrueRange[1]) - nz(SmoothedTrueRange[1]) / len + TrueRange
+
+SmoothedDirectionalMovementPlus = 0.0
+SmoothedDirectionalMovementPlus := nz(SmoothedDirectionalMovementPlus[1]) - nz(SmoothedDirectionalMovementPlus[1]) / len + DirectionalMovementPlus
+
+SmoothedDirectionalMovementMinus = 0.0
+SmoothedDirectionalMovementMinus := nz(SmoothedDirectionalMovementMinus[1]) - nz(SmoothedDirectionalMovementMinus[1]) / len + DirectionalMovementMinus
+
+DIPlus = SmoothedDirectionalMovementPlus / SmoothedTrueRange * 100
+DIMinus = SmoothedDirectionalMovementMinus / SmoothedTrueRange * 100
+DX = math.abs(DIPlus - DIMinus) / (DIPlus + DIMinus) * 100
+ADX = ta.sma(DX, len)
+//**********************************************************************************************************************************************************
+
+longentry = ADX > 20 and close > ma and rsi < 20 and strategy.position_size == 0 
+longexit = strategy.position_size > 0 and rsi > 75
+shortentry = ADX > 20 and close < ma and rsi > 85 and strategy.position_size == 0 
+shortexit = strategy.position_size < 0 and rsi < 25
+
+if (longentry)
+    strategy.entry('long', strategy.long)
+if (longexit)
+    strategy.close('long','long exit')
+if (shortentry)
+    strategy.entry('short',strategy.short)
+if (shortexit)
+    strategy.close('short','short exit')
+
+plot(ma, color=color.white)
